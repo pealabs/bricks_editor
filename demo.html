@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport"content="width=device-width, height=device-height, initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0, user-scalable=no" />
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="-1">
+<link rel=stylesheet href="style.css" type="text/css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<style>
+.build{
+	position:absolute;
+	top:100px;
+	left:500px;
+}
+html, input, select{
+	font-size:5px;
+}
+ul	{list-style:none; padding:10px; margin:0;}
+ul li	{list-style:none; padding:10px; border-bottom:1px solid #000;}
+ul li:hover	{background-color:#e5e5e5;}
+.on	{background-color:#e5e5e5;}
+.off {background-color:#fff;}
+</style>
+<script>
+$(document).ready(function() 
+{	
+	$('.add').click(function(){
+		addGroup();
+	})
+	$('.apply').click(function(){
+		$('.wait').show();
+		delay(function(){
+			fieldSize();
+		}, 100);
+		
+	})
+	
+	var x = Number($('#x').val());
+	var y = Number($('#y').val());
+	
+	drawBasefield(x,y);
+})
+var delay = (function(){
+  var timer = 0;
+  return function(callback, ms){
+    clearTimeout (timer);
+    timer = setTimeout(callback, ms);
+  };
+})();
+var colors = new Array();
+colors['default'] = ['#eee','#ccc','#ddd'];
+colors['color1'] = ['#0099ff','#236d9e','#0f79bf'];
+function addGroup()
+{
+	var group_name = $('.cube_group_name').val();
+	$('.groups').append('<li class="li_'+group_name+'" ><span style="left:0px;">'+group_name+'</span><span style="float:right; cursor:pointer;" onclick="$(\'.li_'+group_name+'\').remove();">X</span></li>');
+	$('.cube_group_name').val('');
+}
+function fieldSize()
+{
+	var x = Number($('#x').val());
+	var y = Number($('#y').val());
+	
+	drawBasefield(x,y);
+}
+function putBox(id, t, l, z)
+{
+	drawCube(id, t-11, l, z);
+	$('.commnets').val(($('body').html()));
+}
+function popBox(id)
+{
+	$('.cube_'+id).remove();
+}
+function drawBasefield(x, y)
+{
+	
+	var width = 10;
+	var height = 10;
+	var t = 0;
+	var l = 0;
+	for(var row = 0; row < y ; row++)
+	{
+		t = (6*row);
+		l = -(10*row);
+		
+		for(var col = 0; col < x ; col++)
+		{
+			t = t+6;
+			l = l+10;
+			z = Number(row+''+col);
+			var fieldHtml = '<div info="'+row+','+col+','+t+','+l+','+z+'" class="field_'+row+'_'+col+'">'
+			+'<div onmouseover="$(this).css(\'background\',\'#999\')" onmouseout="$(this).css(\'background\',\'#fff\')" class="field">'
+			//+row+''+col
+			+'</div>'
+			+'</div>';
+			
+			$('.build').append(fieldHtml);
+			
+			$('.field_'+row+'_'+col+' .field').css('width',width+'px');
+			$('.field_'+row+'_'+col+' .field').css('height',height+'px');
+			$('.field_'+row+'_'+col+' .field').css('-webkit-transform','skewY(-30deg) scaleY(1.05)');
+			$('.field_'+row+'_'+col+' .field').css('-moz-transform','skewY(-30deg) scaleY(1.05)');
+			$('.field_'+row+'_'+col+' .field').css('background-color','#fff');
+			$('.field_'+row+'_'+col+' .field').css('border','1px solid #eee');
+			$('.field_'+row+'_'+col+' .field').css('font-size','5px');
+			$('.field_'+row+'_'+col).css('position','absolute');
+			$('.field_'+row+'_'+col).css('top',t+'px');
+			$('.field_'+row+'_'+col).css('left',l+'px');
+			$('.field_'+row+'_'+col).css('-webkit-transform','rotate(60deg)');
+			$('.field_'+row+'_'+col).css('-moz-transform','rotate(60deg)');
+			
+			$('.wait').hide();	
+			
+			var isMouseDown = false;
+			var isMouseMove = false;
+			$('.field_'+row+'_'+col)
+				.mousedown(function () {
+					isMouseDown = true;
+					//console.info($(this).attr('info').split(','));
+					//console.info('doown');
+					var info = $(this).attr('info').split(',');
+					s_row = Number(info[0]);
+					s_col = Number(info[1]);
+					
+					return false; // prevent text selection
+				})
+				.mouseover(function () {
+					if (isMouseDown) {
+						//표시
+						//console.info(isMouseDown);
+						isMouseMove = true;
+						selector($(this));
+					}
+				})
+				.mouseup(function (e) {
+					//생성
+					//console.info(s_row+'/'+s_col);
+					//console.info(e_row+'/'+e_col);
+					if(isMouseMove){
+						
+						
+						$('.wait').show();	
+						delay(function(){
+							$('.field').css('background','#fff');
+							drawCubes();
+							s_row = 0;
+							s_col = 0;
+							e_row = 0;
+							e_col = 0;
+						}, 500);
+						
+						
+						
+			
+						//console.info('up'+isMouseMove);	
+					}
+				})
+				.click(function(e){
+					var info = $(this).attr('info').split(',');
+					var row = Number(info[0]);
+					var col = Number(info[1]);
+					var t = Number(info[2]);
+					var l = Number(info[3]);
+					var z = Number(info[4]);
+					
+					putBox(row+'_'+col, t, l, z);
+					//console.info('click'+row+'_'+col+'/'+t+'/'+l+'/'+z);
+				});
+
+			$('.build')
+			.mouseup(function () {
+				isMouseDown = false;
+				isMouseMove = false;
+			});
+		}
+	}
+}
+
+var s_row = 0;
+var s_col = 0;
+var e_row = 0;
+var e_col = 0;
+function selector(obj){
+	$('.field').css('background','#fff');
+	var info = $(obj).attr('info').split(',');
+	e_row = Number(info[0]);
+	e_col = Number(info[1]);
+	
+	//현재 위치가 시작 위치 보다 작으면 뒤집는다.
+	var sr = s_row;
+	var sc = s_col;
+	var er = e_row;
+	var ec = e_col;
+	
+	if(e_row<s_row)
+	{
+		sr = e_row;
+		er = s_row;
+	}
+	
+	if(e_col<s_col)
+	{
+		sc = e_col;
+		ec = s_col;
+	}
+	
+	for(var row=sr;row<=er; row++)
+	{
+		for(var col=sc;col<=ec; col++)
+		{
+			$('.field_'+row+'_'+col+' .field').css('background','#999');
+		}
+	}
+}
+function drawCubes()
+{
+	//현재 위치가 시작 위치 보다 작으면 뒤집는다.
+	var sr = s_row;
+	var sc = s_col;
+	var er = e_row;
+	var ec = e_col;
+	
+	if(e_row<s_row)
+	{
+		sr = e_row;
+		er = s_row;
+	}
+	
+	if(e_col<s_col)
+	{
+		sc = e_col;
+		ec = s_col;
+	}
+	
+	for(var row=sr;row<=er; row++)
+	{
+		for(var col=sc;col<=ec; col++)
+		{
+		
+			var info = $('.field_'+row+'_'+col).attr('info').split(',');
+			
+			var label = '<div class="label" style="z-index:99999; position:absolute; top:'+ (Number(info[2])-7)+'px; left:'+ (Number(info[3]))+'px"><div>A111</div></div>';
+	
+			if(row==sr && col==sc)
+			{
+				$('.build').append(label);
+				$('.label div').css('-webkit-transform','skewY(-30deg) scaleY(1.05)');
+				$('.label div').css('-moz-transform','skewY(-30deg) scaleY(1.05)');
+				$('.label').css('position','absolute');
+				$('.label').css('-webkit-transform','rotate(60deg)');
+				$('.label').css('-moz-transform','rotate(60deg)');
+			}
+			
+			putBox(row+'_'+col, Number(info[2]), Number(info[3]), Number(info[4]));
+		}
+	}
+	
+	$('.wait').hide();	
+	$('.field').css('background','#fff');
+}
+function drawCube(id, t, l, z)
+{
+	var selected_color = colors[$('#selected_color').val()];
+	//console.info(selected_color);
+	
+	var cubeHtml = '<div onclick="popBox(\''+id+'\');" style="z-index:'+z+'" class="cube_'+id+'">'
+	+'<div class="topFace">'
+	+'<div></div>'
+	+'</div>'
+	+'<div class="leftFace">'
+	+'<div></div>'
+	+'</div>'
+	+'<div class="rightFace">'
+	+'<div></div>'
+	+'</div>'
+	+'</div>';
+
+	var width = 10;
+	var height = 10;
+
+	var top = t;
+	var left = l;
+
+	//엘리먼트 추가
+	$('.build').append(cubeHtml);
+	
+	//박스 위치
+	$('.cube_'+id).css('position','relative');
+	$('.cube_'+id).css('top',top+'px');
+	$('.cube_'+id).css('left',left+'px');
+
+
+	//박스 윗면 크기 & 위치 & 변형
+	$('.cube_'+id+' .topFace div').css('width',width+'px');
+	$('.cube_'+id+' .topFace div').css('height',height+'px');
+	$('.cube_'+id+' .topFace div').css('-webkit-transform','skewY(-30deg) scaleY(1.05)');
+	$('.cube_'+id+' .topFace div').css('-moz-transform','skewY(-30deg) scaleY(1.05)');
+	$('.cube_'+id+' .topFace div').css('background-color',selected_color[0]);
+	$('.cube_'+id+' .topFace div').css('border','1px solid '+selected_color[2]);
+	$('.cube_'+id+' .topFace').css('position','absolute');
+	$('.cube_'+id+' .topFace').css('top','-1px');
+	$('.cube_'+id+' .topFace').css('left','0.5px');
+	$('.cube_'+id+' .topFace').css('-webkit-transform','rotate(60deg)');
+	$('.cube_'+id+' .topFace').css('-moz-transform','rotate(60deg)');
+
+
+	//박스 왼쪽면 크기 & 위치 & 변형
+	$('.cube_'+id+' .leftFace div').css('width',width+'px');
+	$('.cube_'+id+' .leftFace div').css('height',height+'px');
+	$('.cube_'+id+' .leftFace').css('position','absolute');
+	$('.cube_'+id+' .leftFace').css('top','8px');
+	$('.cube_'+id+' .leftFace').css('left','-5px');
+	$('.cube_'+id+' .leftFace').css('-webkit-transform','skewY(30deg)');
+	$('.cube_'+id+' .leftFace').css('-moz-transform','skewY(30deg)');
+	$('.cube_'+id+' .leftFace').css('background-color',selected_color[1]);
+	$('.cube_'+id+' .leftFace').css('border','1px solid '+selected_color[1]);
+
+
+	//박스 오른쪽면 크기 & 위치 & 변형
+	$('.cube_'+id+' .rightFace div').css('width',9+'px');
+	$('.cube_'+id+' .rightFace div').css('height',height+'px');
+	$('.cube_'+id+' .rightFace').css('position','absolute');
+	$('.cube_'+id+' .rightFace').css('top','8px');
+	$('.cube_'+id+' .rightFace').css('left','7px');
+	$('.cube_'+id+' .rightFace').css('-webkit-transform','skewY(-30deg)');
+	$('.cube_'+id+' .rightFace').css('-moz-transform','skewY(-30deg)');
+	$('.cube_'+id+' .rightFace').css('background-color',selected_color[2]);
+	$('.cube_'+id+' .rightFace').css('border','1px solid '+selected_color[2]);
+
+}
+</script>
+</head>
+<body>
+<div class="wait" style="display:none; position:fixed; top:0px; left:0px; background:#0099ff; color:#fff; height:20px; line-height:20px; text-align:center; padding:5px; z-index:99999;">wait...</div>
+<div class="tools" style="background:#fff; z-index:9999; padding:10px; text-align:center; position:fixed; left:20px; top:20px; border:1px solid #999; width:200px;">
+<div style="float:left"><label>field size : </label>
+<input style="width:30px;" id="x" value="10" type="text"/>X<input id="y" style="width:30px;" value="10" type="text"/>
+<span class="apply" style="border:1px solid #999; background:#eee; cursor:pointer; margin:5px; padding:4px;">apply</span>
+</div>
+<div style="clear:both; height:10px;"></div>
+<div style="float:left"><label>cube color :</label>
+<select id="selected_color">
+	<option value="default" style="color:#eee;">default</option>
+	<option value="color1" style="color:#0099ff;">color1</option>
+</select>
+</div>
+</div>
+<div class="properties" style="background:#fff; z-index:9999; padding:10px; text-align:center; position:fixed; right:20px; top:20px; border:1px solid #999; width:200px;">
+<input type="text" class="cube_group_name" style="height:15px;" placeholder="cube group"/><span class="add" style="border:1px solid #999; background:#eee; cursor:pointer; margin:5px; padding:4px;">add</span>
+<div class="list">
+	<ul class="groups">
+	</ul>
+</div>
+</div>
+<div class="build">
+</div>
+<textarea class="comments" style="display:none; background:#fff; position:fixed; bottom:0px; left:0px; width:100%; height:100px; border:1px solid #999; color:#000;"></textarea>
+속도 튜닝 할것! 
+그리고 지금 하는 프로젝트 브라우저 막을 것
+</body>
+</html>
